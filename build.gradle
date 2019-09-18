@@ -74,7 +74,7 @@ processResources {
 
 jar {
     manifest {
-        attributes 'FMLAT': 'bettercombat_at.cfg'
+        attributes 'FMLAT': 'enhancedcombat_at.cfg'
     }
 }
 
