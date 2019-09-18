@@ -8,42 +8,41 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class PacketSendEnergy implements IMessage
-{
-    private int amount;
+public class PacketSendEnergy implements IMessage {
 
-    @Override
-    public void fromBytes(ByteBuf buf) {
-        this.amount = ByteBufUtils.readVarInt(buf, 4);
-    }
+	private int amount;
 
-    @Override
-    public void toBytes(ByteBuf buf) {
-        ByteBufUtils.writeVarInt(buf, this.amount, 4);
-    }
+	public PacketSendEnergy() {
+		this.amount = 0;
+	}
 
-    public PacketSendEnergy() {
-        this.amount = 0;
-    }
+	public PacketSendEnergy(int amount) {
+		this.amount = amount;
+	}
 
-    public PacketSendEnergy(int amount) {
-        this.amount = amount;
-    }
+	@Override
+	public void toBytes(ByteBuf buf) {
+		ByteBufUtils.writeVarInt(buf, this.amount, 4);
+	}
 
-    public static class Handler
-            implements IMessageHandler<PacketSendEnergy, IMessage>
-    {
-        @Override
-        public IMessage onMessage(final PacketSendEnergy message, final MessageContext ctx) {
-            FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> handle(message, ctx));
-            return null;
-        }
+	@Override
+	public void fromBytes(ByteBuf buf) {
+		this.amount = ByteBufUtils.readVarInt(buf, 4);
+	}
 
-        private static void handle(PacketSendEnergy message, MessageContext ctx) {
-            EntityPlayerMP playerEntity = ctx.getServerHandler().player;
-            if( playerEntity != null ) {
-                playerEntity.ticksSinceLastSwing = message.amount;
-            }
-        }
-    }
+	public static class Handler implements IMessageHandler<PacketSendEnergy, IMessage> {
+
+		@Override
+		public IMessage onMessage(final PacketSendEnergy message, final MessageContext ctx) {
+			FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> handle(message, ctx));
+			return null;
+		}
+
+		private static void handle(PacketSendEnergy message, MessageContext ctx) {
+			EntityPlayerMP playerEntity = ctx.getServerHandler().player;
+			if (playerEntity != null) {
+				playerEntity.ticksSinceLastSwing = message.amount;
+			}
+		}
+	}
 }

@@ -28,9 +28,9 @@ public class SynchedSettings {
 
 	protected static SynchedSettings INSTANCE = new SynchedSettings();
 
-	private Map<WhitelistType, List<Object>> mainhandWeapons = new EnumMap<>(WhitelistType.class);
-	protected Map<WhitelistType, List<Object>> offhandWeapons = new EnumMap<>(WhitelistType.class);
-	protected Map<BlacklistType, List<Object>> offhandBlacklist = new EnumMap<>(BlacklistType.class);
+	private Map<EnumWhitelistType, List<Object>> mainhandWeapons = new EnumMap<>(EnumWhitelistType.class);
+	private Map<EnumWhitelistType, List<Object>> offhandWeapons = new EnumMap<>(EnumWhitelistType.class);
+	private Map<EnumBlacklistType, List<Object>> offhandBlacklist = new EnumMap<>(EnumBlacklistType.class);
 
 	protected boolean isFistWeapon;
 	protected boolean requireFullEnergy;
@@ -44,15 +44,15 @@ public class SynchedSettings {
 
 	protected int attackLength;
 
-	public Map<WhitelistType, List<Object>> getMainhandWeapons() {
+	public Map<EnumWhitelistType, List<Object>> getMainhandWeapons() {
 		return mainhandWeapons;
 	}
 
-	public Map<WhitelistType, List<Object>> getOffhandWeapons() {
+	public Map<EnumWhitelistType, List<Object>> getOffhandWeapons() {
 		return offhandWeapons;
 	}
 
-	public Map<BlacklistType, List<Object>> getOffhandBlacklist() {
+	public Map<EnumBlacklistType, List<Object>> getOffhandBlacklist() {
 		return offhandBlacklist;
 	}
 
@@ -92,163 +92,229 @@ public class SynchedSettings {
 		return attackLength;
 	}
 
-	private void updateWeaponsLists(final String[] syncedMainhandWeapons, final String[] syncedOffhandWeapons, final String[] syncedOffhandBlacklist) {
-		Arrays.stream(WhitelistType.VALUES).forEach(t -> mainhandWeapons.put(t, new ArrayList<>()));
-		Arrays.stream(WhitelistType.VALUES).forEach(t -> offhandWeapons.put(t, new ArrayList<>()));
-		Arrays.stream(BlacklistType.VALUES).forEach(t -> offhandBlacklist.put(t, new ArrayList<>()));
+	protected void setFistWeapon(boolean isFistWeapon) {
+		this.isFistWeapon = isFistWeapon;
+	}
 
-		Arrays.stream(syncedMainhandWeapons).forEach(s -> {
-			int colonIndex = s.indexOf(':');
-			if (colonIndex > 0) {
-				String typeStr = s.substring(0, colonIndex);
-				try {
-					WhitelistType type = WhitelistType.valueOf(typeStr);
-					String value = s.substring(colonIndex + 1);
-					Integer metadata = null;
+	protected void setRequireFullEnergy(boolean requireFullEnergy) {
+		this.requireFullEnergy = requireFullEnergy;
+	}
 
-					// Check if the value contains metadata (damage) information
-					if (StringUtils.countMatches(value, ':') == 2) {
-						value = value.substring(0, value.lastIndexOf(':'));
-						try {
-							metadata = Integer.parseInt(s.substring(s.lastIndexOf(':') + 1, s.length()));
-						} catch (NumberFormatException ignored) {
+	protected void setRefoundEnergy(boolean refoundEnergy) {
+		this.refoundEnergy = refoundEnergy;
+	}
+
+	protected void setMoreSprint(boolean moreSprint) {
+		this.moreSprint = moreSprint;
+	}
+
+	protected void setCritHitOnGround(boolean critHitOnGround) {
+		this.critHitOnGround = critHitOnGround;
+	}
+
+	protected void setOffHandEfficiency(double offHandEfficiency) {
+		this.offHandEfficiency = offHandEfficiency;
+	}
+
+	protected void setCritChance(double critChance) {
+		this.critChance = critChance;
+	}
+
+	protected void setAttackWidth(double attackWidth) {
+		this.attackWidth = attackWidth;
+	}
+
+	protected void setAttackLength(int attackLength) {
+		this.attackLength = attackLength;
+	}
+
+	protected void convertWeaponsArrayToMap(final EnumListType listType, final String[] list) {
+
+		if (listType == null) {
+			EnhancedCombat.LOG.log(Level.WARN, "List type could not be resolved. A packet might have been corrupted.");
+			return;
+		}
+
+		if (list == null || list.length == 0) {
+			EnhancedCombat.LOG.log(Level.WARN, "Received empty list from server. A packet might have been corrupted.");
+			return;
+		}
+
+		switch (listType) {
+		case MAINHAND: {
+			Arrays.stream(EnumWhitelistType.VALUES).forEach(t -> mainhandWeapons.put(t, new ArrayList<>()));
+
+			Arrays.stream(list).forEach(s -> {
+				int colonIndex = s.indexOf(':');
+				if (colonIndex > 0) {
+					String typeStr = s.substring(0, colonIndex);
+					try {
+						EnumWhitelistType type = EnumWhitelistType.valueOf(typeStr);
+						String value = s.substring(colonIndex + 1);
+						Integer metadata = null;
+
+						// Check if the value contains metadata (damage) information
+						if (StringUtils.countMatches(value, ':') == 2) {
+							value = value.substring(0, value.lastIndexOf(':'));
+							try {
+								metadata = Integer.parseInt(s.substring(s.lastIndexOf(':') + 1, s.length()));
+							} catch (NumberFormatException ignored) {
+							}
 						}
-					}
 
-					switch (type) {
-					case CLASS: {
-						try {
-							mainhandWeapons.get(type).add(Class.forName(value));
-						} catch (ClassNotFoundException ignored) {
+						switch (type) {
+						case CLASS: {
+							try {
+								mainhandWeapons.get(type).add(Class.forName(value));
+							} catch (ClassNotFoundException ignored) {
+							}
 						}
-					}
-						break;
-					case NAME: {
+							break;
+						case NAME: {
 
-						Item item = Item.REGISTRY.getObject(new ResourceLocation(value));
+							Item item = Item.REGISTRY.getObject(new ResourceLocation(value));
 
-						if (item != null) {
-							if (metadata == null)
-								mainhandWeapons.get(type).add(new ItemStack(item, 1));
-							else
-								mainhandWeapons.get(type).add(new ItemStack(item, 1, metadata));
+							if (item != null) {
+								if (metadata == null)
+									mainhandWeapons.get(type).add(new ItemStack(item, 1));
+								else
+									mainhandWeapons.get(type).add(new ItemStack(item, 1, metadata));
+							}
 						}
+							break;
+						}
+					} catch (IllegalArgumentException ex) {
+						EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown whitelist type: %s", typeStr));
 					}
-						break;
-					}
-				} catch (IllegalArgumentException ex) {
-					EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown whitelist type: %s", typeStr));
 				}
-			}
-		});
+			});
 
-		Arrays.stream(syncedOffhandWeapons).forEach(s -> {
-			int colonIndex = s.indexOf(':');
-			if (colonIndex > 0) {
-				String typeStr = s.substring(0, colonIndex);
-				try {
-					WhitelistType type = WhitelistType.valueOf(typeStr);
-					String value = s.substring(colonIndex + 1);
-					Integer metadata = null;
+		}
+			break;
+		case OFFHAND: {
 
-					// Check if the value contains metadata (damage) information
-					if (StringUtils.countMatches(value, ':') == 2) {
-						value = value.substring(0, value.lastIndexOf(':'));
-						try {
-							metadata = Integer.parseInt(s.substring(s.lastIndexOf(':') + 1, s.length()));
-						} catch (NumberFormatException ignored) {
-						}
-					}
+			Arrays.stream(EnumWhitelistType.VALUES).forEach(t -> offhandWeapons.put(t, new ArrayList<>()));
 
-					switch (type) {
-					case CLASS: {
-						try {
-							offhandWeapons.get(type).add(Class.forName(value));
-						} catch (ClassNotFoundException ignored) {
+			Arrays.stream(list).forEach(s -> {
+				int colonIndex = s.indexOf(':');
+				if (colonIndex > 0) {
+					String typeStr = s.substring(0, colonIndex);
+					try {
+						EnumWhitelistType type = EnumWhitelistType.valueOf(typeStr);
+						String value = s.substring(colonIndex + 1);
+						Integer metadata = null;
+
+						// Check if the value contains metadata (damage) information
+						if (StringUtils.countMatches(value, ':') == 2) {
+							value = value.substring(0, value.lastIndexOf(':'));
+							try {
+								metadata = Integer.parseInt(s.substring(s.lastIndexOf(':') + 1, s.length()));
+							} catch (NumberFormatException ignored) {
+							}
 						}
-					}
-						break;
-					case NAME: {
-						Item item = Item.REGISTRY.getObject(new ResourceLocation(value));
-						if (item != null) {
-							if (metadata == null)
-								offhandWeapons.get(type).add(new ItemStack(item, 1));
-							else
-								offhandWeapons.get(type).add(new ItemStack(item, 1, metadata));
+
+						switch (type) {
+						case CLASS: {
+							try {
+								offhandWeapons.get(type).add(Class.forName(value));
+							} catch (ClassNotFoundException ignored) {
+							}
 						}
+							break;
+						case NAME: {
+							Item item = Item.REGISTRY.getObject(new ResourceLocation(value));
+							if (item != null) {
+								if (metadata == null)
+									offhandWeapons.get(type).add(new ItemStack(item, 1));
+								else
+									offhandWeapons.get(type).add(new ItemStack(item, 1, metadata));
+							}
+						}
+							break;
+						}
+					} catch (IllegalArgumentException ex) {
+						EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown whitelist type: %s", typeStr));
 					}
-						break;
-					}
-				} catch (IllegalArgumentException ex) {
-					EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown whitelist type: %s", typeStr));
 				}
-			}
-		});
+			});
+		}
+			break;
+		case OFFHANDBLACKLIST: {
 
-		Arrays.stream(syncedOffhandBlacklist).forEach(s -> {
-			int colonIndex = s.indexOf(':');
-			if (colonIndex > 0) {
-				String typeStr = s.substring(0, colonIndex);
-				try {
-					BlacklistType type = BlacklistType.valueOf(typeStr);
-					String value = s.substring(colonIndex + 1);
-					Integer metadata = null;
+			Arrays.stream(EnumBlacklistType.VALUES).forEach(t -> offhandBlacklist.put(t, new ArrayList<>()));
 
-					// Check if the value contains metadata (damage) information
-					if (StringUtils.countMatches(value, ':') == 2) {
-						value = value.substring(0, value.lastIndexOf(':'));
-						try {
-							metadata = Integer.parseInt(s.substring(s.lastIndexOf(':') + 1, s.length()));
-						} catch (NumberFormatException ignored) {
-						}
-					}
+			Arrays.stream(list).forEach(s -> {
+				int colonIndex = s.indexOf(':');
+				if (colonIndex > 0) {
+					String typeStr = s.substring(0, colonIndex);
+					try {
+						EnumBlacklistType type = EnumBlacklistType.valueOf(typeStr);
+						String value = s.substring(colonIndex + 1);
+						Integer metadata = null;
 
-					switch (type) {
-					case ACTION: {
-						try {
-							offhandBlacklist.get(type).add(EnumAction.valueOf(value));
-						} catch (IllegalArgumentException ex) {
-							EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown action type: %s", value));
+						// Check if the value contains metadata (damage) information
+						if (StringUtils.countMatches(value, ':') == 2) {
+							value = value.substring(0, value.lastIndexOf(':'));
+							try {
+								metadata = Integer.parseInt(s.substring(s.lastIndexOf(':') + 1, s.length()));
+							} catch (NumberFormatException ignored) {
+							}
 						}
-					}
-						break;
-					case CLASS: {
-						try {
-							offhandBlacklist.get(type).add(Class.forName(value));
-						} catch (ClassNotFoundException ignored) {
+
+						switch (type) {
+						case ACTION: {
+							try {
+								offhandBlacklist.get(type).add(EnumAction.valueOf(value));
+							} catch (IllegalArgumentException ex) {
+								EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown action type: %s", value));
+							}
 						}
-					}
-						break;
-					case ENTITYCLASS: {
-						try {
-							offhandBlacklist.get(type).add(Class.forName(value));
-						} catch (ClassNotFoundException ignored) {
+							break;
+						case CLASS: {
+							try {
+								offhandBlacklist.get(type).add(Class.forName(value));
+							} catch (ClassNotFoundException ignored) {
+							}
 						}
-					}
-						break;
-					case NAME: {
-						Item item = Item.REGISTRY.getObject(new ResourceLocation(value));
-						if (item != null) {
-							if (metadata == null)
-								offhandBlacklist.get(type).add(new ItemStack(item, 1));
-							else
-								offhandBlacklist.get(type).add(new ItemStack(item, 1, metadata));
+							break;
+						case ENTITYCLASS: {
+							try {
+								offhandBlacklist.get(type).add(Class.forName(value));
+							} catch (ClassNotFoundException ignored) {
+							}
 						}
-					}
-						break;
-					case ENTITYNAME: {
-						Class<?> cls = EntityList.getClass(new ResourceLocation(value));
-						if (cls != null) {
-							offhandBlacklist.get(type).add(cls);
+							break;
+						case NAME: {
+							Item item = Item.REGISTRY.getObject(new ResourceLocation(value));
+							if (item != null) {
+								if (metadata == null)
+									offhandBlacklist.get(type).add(new ItemStack(item, 1));
+								else
+									offhandBlacklist.get(type).add(new ItemStack(item, 1, metadata));
+							}
 						}
+							break;
+						case ENTITYNAME: {
+							Class<?> cls = EntityList.getClass(new ResourceLocation(value));
+							if (cls != null) {
+								offhandBlacklist.get(type).add(cls);
+							}
+						}
+							break;
+						}
+					} catch (IllegalArgumentException ex) {
+						EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown blacklist type: %s", typeStr));
 					}
-						break;
-					}
-				} catch (IllegalArgumentException ex) {
-					EnhancedCombat.LOG.log(Level.WARN, String.format("Unknown blacklist type: %s", typeStr));
 				}
-			}
-		});
+			});
+		}
+		}
+	}
+
+	private void convertWeaponsArrayToMap(String[] mainhandWeapons, String[] offhandWeapons, String[] offhandBlacklist) {
+		convertWeaponsArrayToMap(EnumListType.MAINHAND, mainhandWeapons);
+		convertWeaponsArrayToMap(EnumListType.OFFHAND, offhandWeapons);
+		convertWeaponsArrayToMap(EnumListType.OFFHANDBLACKLIST, offhandBlacklist);
 	}
 
 	/**
@@ -256,31 +322,38 @@ public class SynchedSettings {
 	 * connection to a server is made and settings get synced.
 	 */
 	public static void init() {
-		INSTANCE.updateWeaponsLists(ModConfig.settings.mainhandWeapons, ModConfig.settings.offhandWeapons, ModConfig.settings.offhandBlacklist);
+		INSTANCE.convertWeaponsArrayToMap(ModConfig.settings.mainhandWeapons, ModConfig.settings.offhandWeapons,
+				ModConfig.settings.offhandBlacklist);
 	}
 
-	/**
-	 * Updates all synced settings variables of this class with values from the
-	 * server.
-	 */
-	protected void syncSettingsWithServer() {
-		
-		// TODO: Start packet handling
-		
-		
-		updateWeaponsLists(null, null, null); // Change parameters!!!!
+	public static enum EnumListType {
+		MAINHAND, OFFHAND, OFFHANDBLACKLIST;
+
+		public static EnumListType getListForString(String name) {
+			switch (name) {
+
+			case "MAINHAND":
+				return EnumListType.MAINHAND;
+			case "OFFHAND":
+				return EnumListType.OFFHAND;
+			case "OFFHANDBLACKLIST":
+				return EnumListType.OFFHANDBLACKLIST;
+			}
+
+			return null;
+		}
 	}
 
-	protected enum WhitelistType {
+	protected enum EnumWhitelistType {
 		CLASS, NAME;
 
-		public static final WhitelistType[] VALUES = values();
+		public static final EnumWhitelistType[] VALUES = values();
 	}
 
-	protected enum BlacklistType {
+	protected enum EnumBlacklistType {
 		ACTION, CLASS, NAME, ENTITYCLASS, ENTITYNAME;
 
-		public static final BlacklistType[] VALUES = values();
+		public static final EnumBlacklistType[] VALUES = values();
 	}
 
 }

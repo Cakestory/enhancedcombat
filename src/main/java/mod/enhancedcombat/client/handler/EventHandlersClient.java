@@ -4,7 +4,6 @@ import mod.enhancedcombat.capability.CapabilityOffhandCooldown;
 import mod.enhancedcombat.client.gui.GuiCrosshairsBC;
 import mod.enhancedcombat.combat.IOffHandAttack;
 import mod.enhancedcombat.combat.ISecondHurtTimer;
-import mod.enhancedcombat.handler.ConfigurationHandlerClient;
 import mod.enhancedcombat.handler.EventHandlers;
 import mod.enhancedcombat.network.PacketHandler;
 import mod.enhancedcombat.network.PacketMainhandAttack;
@@ -82,7 +81,7 @@ public class EventHandlersClient extends SynchedSettings {
 			return;
 		}
 
-		boolean isLongerAttack = ConfigurationHandlerClient.isMainhandItemAttackUsable(player.getHeldItemMainhand());
+		boolean isLongerAttack = ConfigurationHandler.isMainhandItemAttackUsable(player.getHeldItemMainhand());
 
 		RayTraceResult mov = getMouseOverExtended(isLongerAttack ? (float) (INSTANCE.getAttackLength() + 4) : 4.0F, false);
 		if (mov != null && mov.entityHit != null) {
@@ -116,14 +115,14 @@ public class EventHandlersClient extends SynchedSettings {
 				return;
 			}
 
-			boolean isLongerAttack = ConfigurationHandlerClient.isMainhandItemAttackUsable(player.getHeldItemOffhand());
+			boolean isLongerAttack = ConfigurationHandler.isMainhandItemAttackUsable(player.getHeldItemOffhand());
 
 			if (INSTANCE.isRequireFullEnergy() && Helpers.execNullable(player.getCapability(EventHandlers.TUTO_CAP, null), CapabilityOffhandCooldown::getOffhandCooldown, 1) > 0) {
 				return;
 			}
 			ItemStack stackOffHand = player.getHeldItemOffhand();
 
-			if (stackOffHand.isEmpty() || !ConfigurationHandlerClient.isOffhandItemAttackUsable(stackOffHand, player.getHeldItemMainhand())) {
+			if (stackOffHand.isEmpty() || !ConfigurationHandler.isOffhandItemAttackUsable(stackOffHand, player.getHeldItemMainhand())) {
 				return;
 			}
 
@@ -167,7 +166,7 @@ public class EventHandlersClient extends SynchedSettings {
 			return Helpers.execNullable(entHit.getServer(), MinecraftServer::isPVPEnabled, false);
 		}
 
-		return !offhand ? ConfigurationHandlerClient.isEntityAttackableMainhand(entHit) : ConfigurationHandlerClient.isEntityAttackableOffhand(entHit);
+		return !offhand ? ConfigurationHandler.isEntityAttackableMainhand(entHit) : ConfigurationHandler.isEntityAttackableOffhand(entHit);
 	}
 
 	public static RayTraceResult getMouseOverExtended(double dist, boolean offhand) {
@@ -179,7 +178,7 @@ public class EventHandlersClient extends SynchedSettings {
 
 		EntityPlayer player = mc.player;
 
-		boolean isWiderAttack = !offhand ? ConfigurationHandlerClient.isMainhandItemAttackUsable(player.getHeldItemMainhand()) : ConfigurationHandlerClient.isOffhandItemAttackUsable(player.getHeldItemOffhand(), player.getHeldItemMainhand());
+		boolean isWiderAttack = !offhand ? ConfigurationHandler.isMainhandItemAttackUsable(player.getHeldItemMainhand()) : ConfigurationHandler.isOffhandItemAttackUsable(player.getHeldItemOffhand(), player.getHeldItemMainhand());
 
 		AxisAlignedBB viewBB = new AxisAlignedBB(rvEntity.posX - 0.5D, rvEntity.posY - 0.0D, rvEntity.posZ - 0.5D, rvEntity.posX + 0.5D, rvEntity.posY + 1.5D, rvEntity.posZ + 0.5D);
 		if (mc.world != null) {

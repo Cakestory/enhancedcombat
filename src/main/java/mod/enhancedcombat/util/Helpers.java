@@ -9,6 +9,8 @@ package mod.enhancedcombat.util;
 import mod.enhancedcombat.capability.CapabilityOffhandCooldown;
 import mod.enhancedcombat.client.handler.SynchedSettings;
 import mod.enhancedcombat.handler.EventHandlers;
+import mod.enhancedcombat.network.PacketHandler;
+import mod.enhancedcombat.network.PacketSettingList;
 
 import com.google.common.collect.Multimap;
 import net.minecraft.enchantment.Enchantment;
@@ -42,15 +44,37 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class Helpers extends SynchedSettings {
+
+	
+// TODO: Send other non list settings through packets	
+	
 	private Helpers() {
+	}
+
+	public static void sendSettingsToClient(EntityPlayerMP playerMP) {
+
+		List<IMessage> packets = new ArrayList<>();
+
+		// Add settings list packets
+		packets.add(new PacketSettingList(EnumListType.MAINHAND, ModConfig.settings.mainhandWeapons));
+		packets.add(new PacketSettingList(EnumListType.OFFHAND, ModConfig.settings.offhandWeapons));
+		packets.add(new PacketSettingList(EnumListType.OFFHANDBLACKLIST, ModConfig.settings.offhandBlacklist));
+
+		for (IMessage packet : packets)
+			PacketHandler.instance.sendTo(packet, playerMP);
+
 	}
 
 	public static <T> void execNullable(@Nullable T obj, Consumer<T> onNonNull) {

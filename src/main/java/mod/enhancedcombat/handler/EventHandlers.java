@@ -10,6 +10,7 @@ import mod.enhancedcombat.util.ModConfig;
 import mod.enhancedcombat.util.Reference;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTPrimitive;
 import net.minecraft.util.EnumFacing;
@@ -25,6 +26,7 @@ import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 @SuppressWarnings("rawtypes")
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
@@ -44,9 +46,19 @@ public class EventHandlers {
 
 	private EventHandlers() {
 	}
-	
+
 	@SubscribeEvent
-	public static void onConfigChanged(final ConfigChangedEvent.OnConfigChangedEvent event) {
+	public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+
+		if (!event.player.world.isRemote) {
+			EntityPlayerMP playerMP = (EntityPlayerMP) event.player;
+
+			Helpers.sendSettingsToClient(playerMP);
+		}
+	}
+
+	@SubscribeEvent
+	public void onConfigChanged(final ConfigChangedEvent.OnConfigChangedEvent event) {
 		if (event.getModID().equals(Reference.MOD_ID)) {
 			ConfigManager.sync(Reference.MOD_ID, Config.Type.INSTANCE);
 		}
@@ -106,55 +118,64 @@ public class EventHandlers {
 			return;
 		}
 		if (event.getObject() instanceof EntityPlayer) {
-			event.addCapability(new ResourceLocation(Reference.MOD_ID, "TUTO_CAP"), new CapabilityOffhandCooldown((EntityPlayer) event.getObject()));
+			event.addCapability(new ResourceLocation(Reference.MOD_ID, "TUTO_CAP"),
+					new CapabilityOffhandCooldown((EntityPlayer) event.getObject()));
 		}
 
-		event.addCapability(new ResourceLocation(Reference.MOD_ID, "IOffHandAttack"), new ICapabilitySerializable<NBTBase>() {
-			IOffHandAttack inst = EventHandlers.OFFHAND_CAP.getDefaultInstance();
+		event.addCapability(new ResourceLocation(Reference.MOD_ID, "IOffHandAttack"),
+				new ICapabilitySerializable<NBTBase>() {
+					IOffHandAttack inst = EventHandlers.OFFHAND_CAP.getDefaultInstance();
 
-			@Override
-			public boolean hasCapability(Capability capability, EnumFacing facing) {
-				return capability == EventHandlers.OFFHAND_CAP;
-			}
+					@Override
+					public boolean hasCapability(Capability capability, EnumFacing facing) {
+						return capability == EventHandlers.OFFHAND_CAP;
+					}
 
-			@Override
-			public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-				return capability == EventHandlers.OFFHAND_CAP ? EventHandlers.OFFHAND_CAP.cast(this.inst) : null;
-			}
+					@Override
+					public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+						return capability == EventHandlers.OFFHAND_CAP ? EventHandlers.OFFHAND_CAP.cast(this.inst)
+								: null;
+					}
 
-			@Override
-			public NBTPrimitive serializeNBT() {
-				return (NBTPrimitive) EventHandlers.OFFHAND_CAP.getStorage().writeNBT(EventHandlers.OFFHAND_CAP, this.inst, null);
-			}
+					@Override
+					public NBTPrimitive serializeNBT() {
+						return (NBTPrimitive) EventHandlers.OFFHAND_CAP.getStorage().writeNBT(EventHandlers.OFFHAND_CAP,
+								this.inst, null);
+					}
 
-			@Override
-			public void deserializeNBT(NBTBase nbt) {
-				EventHandlers.OFFHAND_CAP.getStorage().readNBT(EventHandlers.OFFHAND_CAP, this.inst, null, nbt);
-			}
-		});
+					@Override
+					public void deserializeNBT(NBTBase nbt) {
+						EventHandlers.OFFHAND_CAP.getStorage().readNBT(EventHandlers.OFFHAND_CAP, this.inst, null, nbt);
+					}
+				});
 
-		event.addCapability(new ResourceLocation(Reference.MOD_ID, "ISecondHurtTimer"), new ICapabilitySerializable<NBTBase>() {
-			ISecondHurtTimer inst = EventHandlers.SECONDHURTTIMER_CAP.getDefaultInstance();
+		event.addCapability(new ResourceLocation(Reference.MOD_ID, "ISecondHurtTimer"),
+				new ICapabilitySerializable<NBTBase>() {
+					ISecondHurtTimer inst = EventHandlers.SECONDHURTTIMER_CAP.getDefaultInstance();
 
-			@Override
-			public boolean hasCapability(Capability capability, EnumFacing facing) {
-				return capability == EventHandlers.SECONDHURTTIMER_CAP;
-			}
+					@Override
+					public boolean hasCapability(Capability capability, EnumFacing facing) {
+						return capability == EventHandlers.SECONDHURTTIMER_CAP;
+					}
 
-			@Override
-			public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-				return capability == EventHandlers.SECONDHURTTIMER_CAP ? EventHandlers.SECONDHURTTIMER_CAP.cast(this.inst) : null;
-			}
+					@Override
+					public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+						return capability == EventHandlers.SECONDHURTTIMER_CAP
+								? EventHandlers.SECONDHURTTIMER_CAP.cast(this.inst)
+								: null;
+					}
 
-			@Override
-			public NBTPrimitive serializeNBT() {
-				return (NBTPrimitive) EventHandlers.SECONDHURTTIMER_CAP.getStorage().writeNBT(EventHandlers.SECONDHURTTIMER_CAP, this.inst, null);
-			}
+					@Override
+					public NBTPrimitive serializeNBT() {
+						return (NBTPrimitive) EventHandlers.SECONDHURTTIMER_CAP.getStorage()
+								.writeNBT(EventHandlers.SECONDHURTTIMER_CAP, this.inst, null);
+					}
 
-			@Override
-			public void deserializeNBT(NBTBase nbt) {
-				EventHandlers.SECONDHURTTIMER_CAP.getStorage().readNBT(EventHandlers.SECONDHURTTIMER_CAP, this.inst, null, nbt);
-			}
-		});
+					@Override
+					public void deserializeNBT(NBTBase nbt) {
+						EventHandlers.SECONDHURTTIMER_CAP.getStorage().readNBT(EventHandlers.SECONDHURTTIMER_CAP,
+								this.inst, null, nbt);
+					}
+				});
 	}
 }
