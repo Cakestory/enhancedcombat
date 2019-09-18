@@ -11,4 +11,4 @@ Original: [BetterCombatMod](https://www.curseforge.com/minecraft/mc-mods/better-
 Forked:   [BetterCombatRebirth](https://www.curseforge.com/minecraft/mc-mods/better-combat-rebirth)
 
 
-This mod is licensed under the [MIT License](https://opensource.org/licenses/MIT)
+This mod is licensed under the [MIT License](https://github.com/Cakestory/enhancedcombat/blob/master/LICENSE.md)
