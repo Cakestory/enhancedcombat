@@ -1,0 +1,13 @@
+.gradle/
+libs/
+classes/
+build/
+minecraft/
+run/
+.idea/
+.classpath
+BetterCombatRebirth.iml
+/.metadata/
+/bin/
+EnhancedCombat_Server.launch
+EnhancedCombat_Client.launch

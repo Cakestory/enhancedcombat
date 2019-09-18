@@ -1,0 +1,16 @@
+[
+{
+  "modid": "enhancedcombat",
+  "name": "Enhanced Combat",
+  "description": "Tweaks, adjustments and enhancements to the vanilla combat experience.\nDual wielding of weapons, attack range, attack width, cooldown and critical hit settings and even more features.\n\nThis mod is a fork of SanAndreasP´s Better Combat Rebirth mod, which is a continuation of Better Combat by Ironfists. Most of the code was taken from Better Combat Rebirth�s GitHub page. The project´s code has been adjusted and extended by Cakestory.\n\nLicense: MIT",
+  "version": "0.1.0",
+  "mcversion": "1.12.2",
+  "url": "https://github.com/SanAndreasP/BetterCombatRebirth",
+  "updateUrl": "",
+  "authorList": ["Ironfists (Author of Better Combat)", "SanAndreasP (Maintainer of Better Combat Rebirth)", "Cakestory (Author of Enhanced Combat)"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

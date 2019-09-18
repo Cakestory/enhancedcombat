@@ -1,0 +1,12 @@
+#config
+enhancedcombat.config.title=Enhanced Combat
+
+# text components
+text.enhancedcombat.playerfriendly.on=Player Friendly Mode: ON
+text.enhancedcombat.playerfriendly.off=Player Friendly Mode: OFF
+
+#keybindings
+key.enhancedcombat.playerFriendly.desc=Toggle Player Friendly Mode
+
+#keybindings category
+key.enhancedcombat.category=Enhanced Combat

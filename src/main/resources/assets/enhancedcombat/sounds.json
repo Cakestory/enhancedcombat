@@ -1,0 +1,22 @@
+{
+    "player.swordslash":
+    {
+       "sounds": 
+       [
+           {
+               "name": "enhancedcombat:swordslash",
+               "stream": false
+           }
+       ]
+   },
+   "player.criticalstrike":
+    {
+       "sounds": 
+       [
+           {
+               "name": "enhancedcombat:criticalstrike",
+               "stream": false
+           }
+       ]
+   }
+}
