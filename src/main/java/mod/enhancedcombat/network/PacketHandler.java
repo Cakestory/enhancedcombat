@@ -24,6 +24,6 @@ public class PacketHandler
     @SideOnly(Side.CLIENT)
     public static void registerClientMessages() {	
         instance.registerMessage(PacketOffhandCooldown.ClientHandler.class, PacketOffhandCooldown.class, 4, Side.CLIENT);
-        instance.registerMessage(PacketSettingList.ClientHandler.class, PacketSettingList.class, 5, Side.CLIENT);
+        instance.registerMessage(PacketSettings.ClientHandler.class, PacketSettings.class, 5, Side.CLIENT);
     }
 }

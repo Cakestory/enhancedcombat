@@ -48,14 +48,14 @@ public class EventHandlersClient extends SynchedSettings {
 		if (attack.getKeyCode() < 0 && event.getButton() == attack.getKeyCode() + 100 && event.isButtonstate()) {
 			onMouseLeftClick(event);
 		}
-		if (offHandEfficiency > 0 && useItem.getKeyCode() < 0 && event.getButton() == useItem.getKeyCode() + 100 && event.isButtonstate()) {
+		if (INSTANCE.getSyncedDouble("offHandEfficiency") > 0 && useItem.getKeyCode() < 0 && event.getButton() == useItem.getKeyCode() + 100 && event.isButtonstate()) {
 			onMouseRightClick();
 		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
 	public void onRenderGameOverlay(RenderGameOverlayEvent.Pre event) {
-		if (offHandEfficiency == 0) {
+		if (INSTANCE.getSyncedDouble("offHandEfficiency") == 0) {
 			return;
 		}
 
@@ -83,12 +83,12 @@ public class EventHandlersClient extends SynchedSettings {
 
 		boolean isLongerAttack = ConfigurationHandler.isMainhandItemAttackUsable(player.getHeldItemMainhand());
 
-		RayTraceResult mov = getMouseOverExtended(isLongerAttack ? (float) (INSTANCE.getAttackLength() + 4) : 4.0F, false);
+		RayTraceResult mov = getMouseOverExtended(isLongerAttack ? (float) (INSTANCE.getSyncedInteger("attackLength") + 4) : 4.0F, false);
 		if (mov != null && mov.entityHit != null) {
 			if (mov.entityHit != player) {
 
 				event.setCanceled(true);
-				if ((INSTANCE.isRequireFullEnergy() && player.getCooledAttackStrength(0.5F) < 1.0F) || !shouldAttack(mov.entityHit, player, false)) {
+				if ((INSTANCE.getSyncedBoolean("requireFullEnergy") && player.getCooledAttackStrength(0.5F) < 1.0F) || !shouldAttack(mov.entityHit, player, false)) {
 					return;
 				}
 
@@ -102,7 +102,7 @@ public class EventHandlersClient extends SynchedSettings {
 			}
 		}
 
-		if (INSTANCE.isRefoundEnergy()) {
+		if (INSTANCE.getSyncedBoolean("refoundEnergy")) {
 			refoundEnergy(player);
 		}
 	}
@@ -117,7 +117,7 @@ public class EventHandlersClient extends SynchedSettings {
 
 			boolean isLongerAttack = ConfigurationHandler.isMainhandItemAttackUsable(player.getHeldItemOffhand());
 
-			if (INSTANCE.isRequireFullEnergy() && Helpers.execNullable(player.getCapability(EventHandlers.TUTO_CAP, null), CapabilityOffhandCooldown::getOffhandCooldown, 1) > 0) {
+			if (INSTANCE.getSyncedBoolean("requireFullEnergy") && Helpers.execNullable(player.getCapability(EventHandlers.TUTO_CAP, null), CapabilityOffhandCooldown::getOffhandCooldown, 1) > 0) {
 				return;
 			}
 			ItemStack stackOffHand = player.getHeldItemOffhand();
@@ -127,13 +127,13 @@ public class EventHandlersClient extends SynchedSettings {
 			}
 
 			IOffHandAttack oha = player.getCapability(EventHandlers.OFFHAND_CAP, null);
-			RayTraceResult mov = getMouseOverExtended(isLongerAttack ? (float) (INSTANCE.getAttackLength() + 4) : 4.0F, true);
+			RayTraceResult mov = getMouseOverExtended(isLongerAttack ? (float) (INSTANCE.getSyncedInteger("attackLength") + 4) : 4.0F, true);
 
 			if (oha != null && (mov == null || mov.typeOfHit == RayTraceResult.Type.MISS || shouldAttack(mov.entityHit, player, true))) {
 				oha.swingOffHand(player);
 			}
 
-			if (INSTANCE.isRefoundEnergy()) {
+			if (INSTANCE.getSyncedBoolean("refoundEnergy")) {
 				EventHandlers.INSTANCE.offhandCooldown = Helpers.getOffhandCooldown(player);
 			}
 
@@ -199,7 +199,7 @@ public class EventHandlersClient extends SynchedSettings {
 					AxisAlignedBB aabb;
 
 					if (isWiderAttack) {
-						float w = (float) INSTANCE.getAttackWidth();
+						float w = (float) INSTANCE.getSyncedDouble("attackWidth");
 						aabb = new AxisAlignedBB(entity.posX - entity.width * w, entity.posY, entity.posZ - entity.width * w, entity.posX + entity.width * w, entity.posY + entity.height, entity.posZ + entity.width * w);
 					} else {
 						aabb = new AxisAlignedBB(entity.posX - entity.width / 2.0F, entity.posY, entity.posZ - entity.width / 2.0F, entity.posX + entity.width / 2.0F, entity.posY + entity.height, entity.posZ + entity.width / 2.0F);

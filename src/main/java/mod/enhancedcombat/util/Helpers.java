@@ -10,7 +10,7 @@ import mod.enhancedcombat.capability.CapabilityOffhandCooldown;
 import mod.enhancedcombat.client.handler.SynchedSettings;
 import mod.enhancedcombat.handler.EventHandlers;
 import mod.enhancedcombat.network.PacketHandler;
-import mod.enhancedcombat.network.PacketSettingList;
+import mod.enhancedcombat.network.PacketSettings;
 
 import com.google.common.collect.Multimap;
 import net.minecraft.enchantment.Enchantment;
@@ -45,6 +45,8 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,20 +59,20 @@ import java.util.function.Function;
 
 public final class Helpers extends SynchedSettings {
 
-	
-// TODO: Send other non list settings through packets	
-	
-	private Helpers() {
-	}
-
+	@SideOnly(Side.SERVER)
 	public static void sendSettingsToClient(EntityPlayerMP playerMP) {
 
 		List<IMessage> packets = new ArrayList<>();
 
-		// Add settings list packets
-		packets.add(new PacketSettingList(EnumListType.MAINHAND, ModConfig.settings.mainhandWeapons));
-		packets.add(new PacketSettingList(EnumListType.OFFHAND, ModConfig.settings.offhandWeapons));
-		packets.add(new PacketSettingList(EnumListType.OFFHANDBLACKLIST, ModConfig.settings.offhandBlacklist));
+		// Add list type of settings to packets
+		packets.add(new PacketSettings(EnumSettingsType.LIST_MAINHAND, ModConfig.settings.mainhandWeapons));
+		packets.add(new PacketSettings(EnumSettingsType.LIST_OFFHAND, ModConfig.settings.offhandWeapons));
+		packets.add(new PacketSettings(EnumSettingsType.LIST_OFFHANDBLACKLIST, ModConfig.settings.offhandBlacklist));
+
+		// Add other types of settings to packets
+		getBooleanSettings().forEach((k, v) -> packets.add(new PacketSettings(k, v)));
+		getIntegerSettings().forEach((k, v) -> packets.add(new PacketSettings(k, v)));
+		getDoubleSettings().forEach((k, v) -> packets.add(new PacketSettings(k, v)));
 
 		for (IMessage packet : packets)
 			PacketHandler.instance.sendTo(packet, playerMP);
@@ -111,7 +113,7 @@ public final class Helpers extends SynchedSettings {
 			}
 		}
 
-		return (1.0F + attackModified) * (INSTANCE.getOffHandEfficiency() > 0 ? (float) INSTANCE.getOffHandEfficiency() : 1.0F);
+		return (1.0F + attackModified) * (INSTANCE.getSyncedDouble("offHandEfficiency") > 0 ? (float) INSTANCE.getSyncedDouble("offHandEfficiency") : 1.0F);
 	}
 
 	public static int getOffhandFireAspect(EntityPlayer player) {
@@ -179,7 +181,7 @@ public final class Helpers extends SynchedSettings {
 					boolean knockback = false;
 					boolean isCrit;
 					boolean isSword = false;
-					boolean isPositioned = INSTANCE.isCritHitOnGround() ? player.onGround : !player.onGround && player.fallDistance > 0.0F;
+					boolean isPositioned = INSTANCE.getSyncedBoolean("critHitOnGround") ? player.onGround : !player.onGround && player.fallDistance > 0.0F;
 					int knockbackMod = offhand ? getOffhandKnockback(player) : EnchantmentHelper.getKnockbackModifier(player);
 					int fireAspect = offhand ? getOffhandFireAspect(player) : EnchantmentHelper.getFireAspectModifier(player);
 
@@ -189,8 +191,9 @@ public final class Helpers extends SynchedSettings {
 						knockback = true;
 					}
 
-					if (INSTANCE.getCritChance() > 0) {
-						isCrit = player.getRNG().nextFloat() <= (float) INSTANCE.getCritChance() && !player.isSprinting() && isPositioned && !player.isOnLadder() && !player.isInWater() && !player.isPotionActive(MobEffects.BLINDNESS) && !player.isRiding() && targetEntity instanceof EntityLivingBase;
+					if (INSTANCE.getSyncedDouble("critChance") > 0) {
+						isCrit = player.getRNG().nextFloat() <= (float) INSTANCE.getSyncedDouble("critChance") && !player.isSprinting() && isPositioned && !player.isOnLadder() && !player.isInWater() && !player.isPotionActive(MobEffects.BLINDNESS) && !player.isRiding()
+								&& targetEntity instanceof EntityLivingBase;
 
 					} else {
 						isCrit = isStrong && player.fallDistance > 0.0F && !player.onGround && !player.isOnLadder() && !player.isInWater() && !player.isPotionActive(MobEffects.BLINDNESS) && !player.isRiding() && targetEntity instanceof EntityLivingBase && !player.isSprinting();
@@ -242,7 +245,7 @@ public final class Helpers extends SynchedSettings {
 							}
 							player.motionX *= 0.6D;
 							player.motionZ *= 0.6D;
-							if (!INSTANCE.isMoreSprint()) {
+							if (!INSTANCE.getSyncedBoolean("moreSprint")) {
 								player.setSprinting(false);
 							}
 						}
